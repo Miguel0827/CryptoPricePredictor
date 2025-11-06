@@ -1,0 +1,15 @@
+# 🐍 Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+.eggs/
+
+# 📦 Entornos virtuales
+venv/
+env/
+.venv/
+myenv/
+myenvname/
