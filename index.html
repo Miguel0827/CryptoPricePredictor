@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Price Predictor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: white;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .results h2 {
+            color: #1e3c72;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            font-weight: 600;
+        }
+        
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .result-card h3 {
+            color: #2a5298;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+        
+        .price {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+
+        .current-price-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .current-price-box .label {
+            font-size: 1em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .current-price-box .price {
+            color: white;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .info-text {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border: 1px solid #e9ecef;
+        }
+        
+        .stat-item strong {
+            color: #2a5298;
+        }
+        
+        .predictions-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .prediction-item {
+            padding: 12px;
+            background: white;
+            margin: 8px 0;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #2a5298;
+            border: 1px solid #e9ecef;
+            border-left: 4px solid #2a5298;
+        }
+        
+        .prediction-day {
+            font-weight: 600;
+            color: #2a5298;
+            flex: 1;
+        }
+
+        .prediction-date {
+            color: #666;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        
+        .prediction-price {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .chart-container {
+            margin: 20px 0;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .chart-container canvas {
+            max-height: 400px;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #c33;
+        }
+
+        .positive {
+            color: #28a745;
+        }
+
+        .negative {
+            color: #dc3545;
+        }
+
+        .comparison-box {
+            background: #e8f4f8;
+            border: 2px solid #2a5298;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .comparison-box h4 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .comparison-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #d0e8f0;
+        }
+
+        .comparison-item:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .comparison-value {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Crypto Price Predictor</h1>
+            <p>Predicciones de precios usando modelos ARIMA, LSTM y GRU</p>
+        </div>
+        
+        <div class="controls">
+            <div class="form-group">
+                <label for="cryptoSelect">Selecciona la criptomoneda:</label>
+                <select id="cryptoSelect">
+                    <option value="">Cargando...</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="modelSelect">Selecciona el modelo de predicción:</label>
+                <select id="modelSelect">
+                    <option value="arima">ARIMA - Modelo estadístico de series temporales</option>
+                    <option value="lstm">LSTM - Long Short-Term Memory (Red Neuronal Recurrente)</option>
+                    <option value="gru">GRU - Gated Recurrent Unit (Red Neuronal Recurrente)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="daysInput">Días a visualizar (máximo 30):</label>
+                <input type="number" id="daysInput" value="7" min="1" max="30">
+            </div>
+            
+            <button id="predictBtn" onclick="showPrediction()">🔮 Ver Predicciones</button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Cargando predicciones...</p>
+        </div>
+        
+        <div class="results" id="results">
+            <h2>Resultados de la Predicción</h2>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let modelsInfo = null;
+        let currentChart = null;
+
+        const cryptoNames = {
+            '0': 'Bitcoin',
+            '1': 'Ethereum',
+            '2': 'Dogecoin'
+        };
+
+        const cryptoSymbols = {
+            '0': 'BTC',
+            '1': 'ETH',
+            '2': 'DOGE'
+        };
+
+        // Función para generar fechas futuras
+        function generateFutureDates(startDate, days) {
+            const dates = [];
+            const start = new Date(startDate);
+            
+            for (let i = 1; i <= days; i++) {
+                const futureDate = new Date(start);
+                futureDate.setDate(start.getDate() + i);
+                dates.push(futureDate);
+            }
+            
+            return dates;
+        }
+
+        // Función para formatear fecha
+        function formatDate(date) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return date.toLocaleDateString('es-ES', options);
+        }
+
+        // Función para formatear fecha corta (para gráfico)
+        function formatDateShort(date) {
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            return `${day}/${month}`;
+        }
+
+        // Cargar información de modelos al inicio
+        async function loadModelsInfo() {
+            try {
+                const response = await fetch('models/models_info.json');
+                modelsInfo = await response.json();
+                
+                const select = document.getElementById('cryptoSelect');
+                select.innerHTML = modelsInfo.symbols.map(symbol => 
+                    `<option value="${symbol}">${cryptoNames[symbol] || 'Moneda ' + symbol} (${cryptoSymbols[symbol]})</option>`
+                ).join('');
+            } catch (error) {
+                console.error('Error cargando información de modelos:', error);
+                document.getElementById('results').innerHTML = `
+                    <div class="error">
+                        <h3>❌ Error al cargar los datos</h3>
+                        <p>No se pudo encontrar el archivo models/models_info.json</p>
+                        <p>Asegúrate de que la carpeta 'models' esté en el mismo directorio que este archivo HTML.</p>
+                    </div>
+                `;
+                document.getElementById('results').classList.add('show');
+            }
+        }
+
+        // Crear gráfico
+        function createChart(predictions, currentPrice, futureDates) {
+            const ctx = document.getElementById('predictionChart');
+            
+            // Destruir gráfico anterior si existe
+            if (currentChart) {
+                currentChart.destroy();
+            }
+            
+            const labels = futureDates.map(date => formatDateShort(date));
+            const data = predictions;
+            
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Precio Predicho ($)',
+                        data: data,
+                        borderColor: '#2a5298',
+                        backgroundColor: 'rgba(42, 82, 152, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#2a5298',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }, {
+                        label: 'Precio Actual de Referencia ($)',
+                        data: Array(predictions.length).fill(currentPrice),
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.05)',
+                        borderWidth: 3,
+                        borderDash: [10, 5],
+                        tension: 0,
+                        fill: false,
+                        pointRadius: 0,
+                        pointHoverRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14,
+                                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                                    weight: '600'
+                                },
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 15,
+                            titleFont: {
+                                size: 15,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 14
+                            },
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    return formatDate(futureDates[index]);
+                                },
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += '$' + context.parsed.y.toFixed(2);
+                                    
+                                    if (context.datasetIndex === 0) {
+                                        const diff = context.parsed.y - currentPrice;
+                                        const diffPercent = ((diff / currentPrice) * 100).toFixed(2);
+                                        label += ` (${diff >= 0 ? '+' : ''}${diffPercent}%)`;
+                                    }
+                                    
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                },
+                                font: {
+                                    size: 12
+                                },
+                                padding: 10
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                },
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Mostrar predicción
+        function showPrediction() {
+            const symbol = document.getElementById('cryptoSelect').value;
+            const modelType = document.getElementById('modelSelect').value;
+            const days = parseInt(document.getElementById('daysInput').value);
+            
+            if (!symbol) {
+                alert('Por favor selecciona una criptomoneda');
+                return;
+            }
+            
+            if (!modelsInfo) {
+                alert('Los datos aún no se han cargado');
+                return;
+            }
+            
+            // Mostrar loading
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('predictBtn').disabled = true;
+            
+            // Simular pequeño delay para mejor UX
+            setTimeout(() => {
+                try {
+                    const symbolInfo = modelsInfo.models[symbol];
+                    const modelData = symbolInfo.models[modelType];
+                    
+                    if (!modelData) {
+                        throw new Error(`No hay datos para el modelo ${modelType}`);
+                    }
+                    
+                    // Obtener predicciones
+                    let predictions;
+                    if (modelType === 'arima') {
+                        predictions = modelData.forecast_30d || [];
+                    } else {
+                        predictions = modelData.last_30_predictions || [];
+                    }
+                    
+                    predictions = predictions.slice(0, Math.min(days, predictions.length));
+                    
+                    // Generar fechas futuras
+                    const futureDates = generateFutureDates(symbolInfo.last_date, predictions.length);
+                    
+                    // Calcular estadísticas
+                    const avgPrice = predictions.reduce((a, b) => a + b, 0) / predictions.length;
+                    const maxPrice = Math.max(...predictions);
+                    const minPrice = Math.min(...predictions);
+                    const currentPrice = symbolInfo.last_price;
+                    const priceChange = ((avgPrice - currentPrice) / currentPrice * 100).toFixed(2);
+                    const priceDiff = (avgPrice - currentPrice).toFixed(2);
+                    
+                    // Mostrar resultados
+                    displayResults({
+                        symbol,
+                        modelType,
+                        predictions,
+                        futureDates,
+                        currentPrice,
+                        avgPrice,
+                        maxPrice,
+                        minPrice,
+                        priceChange,
+                        priceDiff,
+                        lastDate: symbolInfo.last_date,
+                        modelData: modelData
+                    });
+                    
+                } catch (error) {
+                    console.error('Error mostrando predicción:', error);
+                    document.getElementById('resultsContent').innerHTML = `
+                        <div class="error">
+                            <h3>❌ Error</h3>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                    document.getElementById('results').classList.add('show');
+                } finally {
+                    document.getElementById('loading').classList.remove('show');
+                    document.getElementById('predictBtn').disabled = false;
+                }
+            }, 500);
+        }
+
+        // Mostrar resultados
+        function displayResults(data) {
+            const modelNames = {
+                'arima': 'ARIMA',
+                'lstm': 'LSTM',
+                'gru': 'GRU'
+            };
+            
+            const cryptoName = cryptoNames[data.symbol] || 'Moneda ' + data.symbol;
+            const cryptoSymbol = cryptoSymbols[data.symbol] || data.symbol;
+            
+            let modelInfo = '';
+            if (data.modelType === 'arima' && data.modelData.aic) {
+                modelInfo = `
+                    <div class="stat-item">
+                        <strong>AIC:</strong> ${data.modelData.aic.toFixed(2)} | 
+                        <strong>BIC:</strong> ${data.modelData.bic.toFixed(2)}
+                    </div>
+                `;
+            } else if (data.modelData.final_loss) {
+                modelInfo = `
+                    <div class="stat-item">
+                        <strong>Loss Final:</strong> ${data.modelData.final_loss.toFixed(6)}
+                    </div>
+                    <div class="stat-item">
+                        <strong>Arquitectura:</strong> ${data.modelData.architecture}
+                    </div>
+                `;
+            }
+            
+            const resultsDiv = document.getElementById('resultsContent');
+            
+            resultsDiv.innerHTML = `
+                <div class="result-card">
+                    <h3>${cryptoName} (${cryptoSymbol}) - Modelo ${modelNames[data.modelType]}</h3>
+                    
+                    <div class="current-price-box">
+                        <div class="label">💰 Precio Actual (${formatDate(new Date(data.lastDate))})</div>
+                        <div class="price">$${data.currentPrice.toFixed(2)}</div>
+                    </div>
+                    
+                    ${modelInfo}
+                </div>
+
+                <div class="comparison-box">
+                    <h4>📊 Comparación: Predicción vs Precio Actual</h4>
+                    <div class="comparison-item">
+                        <span class="comparison-label">Precio Actual:</span>
+                        <span class="comparison-value">$${data.currentPrice.toFixed(2)}</span>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="comparison-label">Precio Promedio Predicho:</span>
+                        <span class="comparison-value">$${data.avgPrice.toFixed(2)}</span>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="comparison-label">Diferencia:</span>
+                        <span class="comparison-value ${data.priceDiff >= 0 ? 'positive' : 'negative'}">
+                            ${data.priceDiff >= 0 ? '+' : ''}$${data.priceDiff} 
+                            (${data.priceChange >= 0 ? '+' : ''}${data.priceChange}%)
+                        </span>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="comparison-label">Tendencia:</span>
+                        <span class="comparison-value ${data.priceChange >= 0 ? 'positive' : 'negative'}">
+                            ${data.priceChange >= 0 ? '📈 Alcista' : '📉 Bajista'}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>📈 Gráfico de Predicciones (${data.predictions.length} días)</h3>
+                    <canvas id="predictionChart"></canvas>
+                </div>
+                
+                <div class="grid">
+                    <div class="result-card">
+                        <h3>💵 Precio Promedio Predicho</h3>
+                        <div class="price">$${data.avgPrice.toFixed(2)}</div>
+                        <p class="info-text ${data.priceChange >= 0 ? 'positive' : 'negative'}" style="font-weight: bold; font-size: 1.1em;">
+                            ${data.priceChange >= 0 ? '▲' : '▼'} ${Math.abs(data.priceChange)}% vs precio actual
+                        </p>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>⬆️ Precio Máximo</h3>
+                        <div class="price">$${data.maxPrice.toFixed(2)}</div>
+                        <p class="info-text">Precio más alto predicho</p>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>⬇️ Precio Mínimo</h3>
+                        <div class="price">$${data.minPrice.toFixed(2)}</div>
+                        <p class="info-text">Precio más bajo predicho</p>
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3>📅 Predicciones Diarias (${data.predictions.length} días)</h3>
+                    <div class="predictions-list">
+                        ${data.predictions.map((price, i) => {
+                            const diff = price - data.currentPrice;
+                            const diffPercent = ((diff / data.currentPrice) * 100).toFixed(2);
+                            return `
+                            <div class="prediction-item">
+                                <div style="display: flex; align-items: center; flex: 1;">
+                                    <span class="prediction-day">Día ${i + 1}</span>
+                                    <span class="prediction-date">${formatDate(data.futureDates[i])}</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="prediction-price">$${price.toFixed(2)}</span>
+                                    <div class="${diff >= 0 ? 'positive' : 'negative'}" style="font-size: 0.85em; margin-top: 3px;">
+                                        ${diff >= 0 ? '+' : ''}${diffPercent}%
+                                    </div>
+                                </div>
+                            </div>
+                        `}).join('')}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').classList.add('show');
+            
+            // Crear gráfico después de que el canvas esté en el DOM
+            setTimeout(() => {
+                createChart(data.predictions, data.currentPrice, data.futureDates);
+            }, 100);
+        }
+
+        // Inicializar
+        loadModelsInfo();
+    </script>
+</body>
+</html>
