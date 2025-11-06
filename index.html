@@ -643,12 +643,20 @@
                         throw new Error('No hay predicciones disponibles para este modelo');
                     }
                     
-                    const avgChange = modelPredictions.length > 1 ? 
-                        (modelPredictions[modelPredictions.length - 1] - modelPredictions[0]) / modelPredictions.length : 0;
+                    // Calcular tendencia porcentual en lugar de absoluta
+                    const firstPred = modelPredictions[0];
+                    const lastPred = modelPredictions[modelPredictions.length - 1];
+                    const totalChangePercent = ((lastPred - firstPred) / firstPred);
+                    const avgChangePercent = totalChangePercent / modelPredictions.length;
+                    
+                    // Factor de ajuste conservador (reduce la volatilidad)
+                    const conservativeFactor = 0.5; // Reduce las predicciones al 50%
                     
                     let predictions = [];
                     for (let i = 1; i <= days && i <= 30; i++) {
-                        const predictedPrice = basePrice + (avgChange * i);
+                        // Aplicar cambio porcentual ajustado desde el precio base
+                        const adjustedChange = avgChangePercent * i * conservativeFactor;
+                        const predictedPrice = basePrice * (1 + adjustedChange);
                         predictions.push(predictedPrice);
                     }
                     
