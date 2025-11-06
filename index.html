@@ -649,15 +649,33 @@
                     const totalChangePercent = ((lastPred - firstPred) / firstPred);
                     const avgChangePercent = totalChangePercent / modelPredictions.length;
                     
-                    // Factor de ajuste conservador (reduce la volatilidad)
-                    const conservativeFactor = 0.5; // Reduce las predicciones al 50%
+                    // Factor de ajuste conservador (reduce la volatilidad extrema)
+                    const conservativeFactor = 0.3; // Reduce las predicciones al 30%
+                    
+                    // Calcular volatilidad del modelo
+                    let volatilitySum = 0;
+                    for (let i = 1; i < modelPredictions.length; i++) {
+                        const change = Math.abs((modelPredictions[i] - modelPredictions[i-1]) / modelPredictions[i-1]);
+                        volatilitySum += change;
+                    }
+                    const avgVolatility = volatilitySum / (modelPredictions.length - 1);
                     
                     let predictions = [];
+                    let lastPrice = basePrice;
+                    
                     for (let i = 1; i <= days && i <= 30; i++) {
-                        // Aplicar cambio porcentual ajustado desde el precio base
-                        const adjustedChange = avgChangePercent * i * conservativeFactor;
-                        const predictedPrice = basePrice * (1 + adjustedChange);
+                        // Aplicar cambio porcentual ajustado
+                        const trendChange = avgChangePercent * conservativeFactor;
+                        
+                        // Agregar componente de volatilidad semi-aleatoria
+                        const volatilityComponent = avgVolatility * conservativeFactor * (Math.sin(i * 0.5) * 0.5);
+                        
+                        // Calcular precio predicho
+                        const totalChange = trendChange + volatilityComponent;
+                        const predictedPrice = lastPrice * (1 + totalChange);
+                        
                         predictions.push(predictedPrice);
+                        lastPrice = predictedPrice;
                     }
                     
                     const futureDates = generateFutureDates(predictions.length);
