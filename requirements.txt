@@ -19,3 +19,6 @@ Cython
 prophet
 plotly
 scipy
+fastapi 
+uvicorn 
+httpx

@@ -1,81 +1,60 @@
 import json
-import math
-from datetime import datetime, timedelta
+import numpy as np
+from keras.models import load_model
+from sklearn.preprocessing import MinMaxScaler
 import httpx
+import os
 
-crypto_names = {
-    "0": "Bitcoin",
-    "1": "Ethereum",
-    "2": "Dogecoin"
-}
+# -------------------------------------------------------------------
+BASE_DIR = "C:/Users/juanm/Documents/GitHub/CryptoPricePredictor"
+MODELS_DIR = os.path.join(BASE_DIR, "models")
+MODELS_INFO_PATH = os.path.join(BASE_DIR, "models", "models_info.json")
 
+# -------------------------------------------------------------------
 crypto_ids = {
     "0": "bitcoin",
     "1": "ethereum",
-    "2": "dogecoin"
+    "2": "solana"
 }
 
+# -------------------------------------------------------------------
 def load_models_info():
-    with open("models_info.json", "r") as f:
+    with open(MODELS_INFO_PATH, "r") as f:
         return json.load(f)
 
+# -------------------------------------------------------------------
+def generate_future_dates(days):
+    from datetime import datetime, timedelta
+    today = datetime.today()
+    return [(today + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(1, days+1)]
 
-async def fetch_real_time_price(crypto_id: str):
-    """Consulta el precio en Coingecko."""
-    url = f"https://api.coingecko.com/api/v3/simple/price"
-    params = {
-        "ids": crypto_id,
-        "vs_currencies": "usd",
-        "include_24hr_change": "true"
-    }
+# -------------------------------------------------------------------
+async def fetch_real_time_price(crypto_name: str):
+    url = f"https://api.coingecko.com/api/v3/simple/price?ids={crypto_name}&vs_currencies=usd"
     async with httpx.AsyncClient() as client:
-        try:
-            r = await client.get(url, params=params)
-            data = r.json()
-            return {
-                "price": data[crypto_id]["usd"],
-                "change24h": data[crypto_id]["usd_24h_change"]
-            }
-        except:
-            return None
+        response = await client.get(url)
+    if response.status_code != 200:
+        return None
+    return response.json()[crypto_name]["usd"]
 
+# -------------------------------------------------------------------
+def generate_predictions(base_price, model_data, days: int):
+    """
+    Genera predicciones según tipo de modelo
+    """
+    model_type = model_data.get("architecture", "").lower()
+    
+    if "arima" in model_data.get("file", "") or model_type == "arima":
+        # Usar forecast ARIMA
+        forecast = model_data["forecast_30d"]
+        return forecast[:days]
 
-def generate_predictions(base_price, model_data, days):
-    """Replica tu lógica matemática del frontend."""
-    model_predictions = model_data.get("forecast_30d") if model_data.get("forecast_30d") else model_data.get("last_30_predictions")
-
-    if not model_predictions:
-        raise ValueError("No hay predicciones en el modelo.")
-
-    first_pred = model_predictions[0]
-    last_pred = model_predictions[-1]
-    total_change_percent = (last_pred - first_pred) / first_pred
-    avg_change_percent = total_change_percent / len(model_predictions)
-
-    conservative_factor = 0.3
-
-    volatility_sum = 0
-    for i in range(1, len(model_predictions)):
-        change = abs((model_predictions[i] - model_predictions[i-1]) / model_predictions[i-1])
-        volatility_sum += change
-
-    avg_volatility = volatility_sum / (len(model_predictions)-1)
-
-    predictions = [base_price]
-    last_price = base_price
-
-    for i in range(1, min(days, 30)):
-        trend_change = avg_change_percent * conservative_factor
-        volatility_component = avg_volatility * conservative_factor * (math.sin(i * 0.5) * 0.5)
-        total_change = trend_change + volatility_component
-        predicted_price = last_price * (1 + total_change)
-
-        predictions.append(predicted_price)
-        last_price = predicted_price
-
+    # Para LSTM o GRU: usamos last_30_predictions como ejemplo
+    predictions = model_data.get("last_30_predictions", [])
+    if len(predictions) >= days:
+        return predictions[:days]
+    
+    # Si pedimos más días de los disponibles, repetimos el último
+    while len(predictions) < days:
+        predictions.append(predictions[-1])
     return predictions
-
-
-def generate_future_dates(n):
-    today = datetime.now()
-    return [(today + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(n)]

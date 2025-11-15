@@ -177,20 +177,6 @@
             display: inline-block;
             margin-top: 10px;
         }
-
-        .warning-box {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 5px;
-            color: #856404;
-        }
-
-        .warning-box strong {
-            display: block;
-            margin-bottom: 5px;
-        }
         
         .loading {
             text-align: center;
@@ -306,54 +292,8 @@
             color: #dc3545;
         }
 
-        .comparison-box {
-            background: #e8f4f8;
-            border: 2px solid #2a5298;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-
-        .comparison-box h4 {
-            color: #1e3c72;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-        }
-
-        .comparison-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #d0e8f0;
-        }
-
-        .comparison-item:last-child {
-            border-bottom: none;
-        }
-
-        .comparison-label {
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .comparison-value {
-            font-size: 1.1em;
-            font-weight: bold;
-        }
-
         .real-time-box {
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        }
-
-        .model-accuracy-good {
-            background: #d4edda;
-            border-color: #28a745;
-        }
-
-        .model-accuracy-bad {
-            background: #f8d7da;
-            border-color: #dc3545;
         }
     </style>
 </head>
@@ -368,7 +308,9 @@
             <div class="form-group">
                 <label for="cryptoSelect">Selecciona la criptomoneda:</label>
                 <select id="cryptoSelect">
-                    <option value="">Cargando...</option>
+                    <option value="0">Bitcoin (BTC)</option>
+                    <option value="1">Ethereum (ETH)</option>
+                    <option value="2">Dogecoin (DOGE)</option>
                 </select>
             </div>
             
@@ -401,106 +343,43 @@
     </div>
 
     <script>
-        let modelsInfo = null;
         let currentChart = null;
+
+        const API_URL = 'http://127.0.0.1:8000/predict';
 
         const cryptoNames = {
             '0': 'Bitcoin',
             '1': 'Ethereum',
-            '2': 'Dogecoin'
+            '2': 'Solana'
         };
 
         const cryptoSymbols = {
             '0': 'BTC',
             '1': 'ETH',
-            '2': 'DOGE'
+            '2': 'SOL'
         };
 
-        const cryptoIds = {
-            '0': 'bitcoin',
-            '1': 'ethereum',
-            '2': 'dogecoin'
-        };
-
-        async function fetchRealTimePrice(cryptoId) {
-            try {
-                const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=usd&include_24hr_change=true`);
-                const data = await response.json();
-                return {
-                    price: data[cryptoId].usd,
-                    change24h: data[cryptoId].usd_24h_change
-                };
-            } catch (error) {
-                console.error('Error obteniendo precio en tiempo real:', error);
-                return null;
-            }
-        }
-
-        function getTodayDate() {
-            return new Date();
-        }
-
-        function generateFutureDates(days) {
-            const dates = [];
-            const today = getTodayDate();
-            
-            dates.push(new Date(today));
-            
-            for (let i = 1; i < days; i++) {
-                const futureDate = new Date(today);
-                futureDate.setDate(today.getDate() + i);
-                dates.push(futureDate);
-            }
-            
-            return dates;
-        }
-
-        function formatDate(date) {
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
             const options = { year: 'numeric', month: 'short', day: 'numeric' };
             return date.toLocaleDateString('es-ES', options);
         }
 
-        function formatDateShort(date) {
+        function formatDateShort(dateStr) {
+            const date = new Date(dateStr);
             const day = date.getDate();
             const month = date.getMonth() + 1;
             return `${day}/${month}`;
         }
 
-        function daysBetween(date1, date2) {
-            const oneDay = 24 * 60 * 60 * 1000;
-            return Math.round(Math.abs((date1 - date2) / oneDay));
-        }
-
-        async function loadModelsInfo() {
-            try {
-                const response = await fetch('models/models_info.json');
-                modelsInfo = await response.json();
-                
-                const select = document.getElementById('cryptoSelect');
-                select.innerHTML = modelsInfo.symbols.map(symbol => 
-                    `<option value="${symbol}">${cryptoNames[symbol] || 'Moneda ' + symbol} (${cryptoSymbols[symbol]})</option>`
-                ).join('');
-            } catch (error) {
-                console.error('Error cargando información de modelos:', error);
-                document.getElementById('results').innerHTML = `
-                    <div class="error">
-                        <h3>❌ Error al cargar los datos</h3>
-                        <p>No se pudo encontrar el archivo models/models_info.json</p>
-                    </div>
-                `;
-                document.getElementById('results').classList.add('show');
-            }
-        }
-
-        function createChart(predictions, currentPrice, realTimePrice, futureDates) {
+        function createChart(predictions, basePrice, realTimePrice, dates) {
             const ctx = document.getElementById('predictionChart');
             
             if (currentChart) {
                 currentChart.destroy();
             }
             
-            const labels = futureDates.map((date, i) => i === 0 ? 'Hoy' : formatDateShort(date));
-            const basePrice = realTimePrice || currentPrice;
+            const labels = dates.map((date, i) => formatDateShort(date));
             
             const datasets = [{
                 label: 'Precio Predicho ($)',
@@ -557,15 +436,14 @@
                             callbacks: {
                                 title: function(context) {
                                     const idx = context[0].dataIndex;
-                                    if (idx === 0) return 'Hoy - ' + formatDate(futureDates[idx]);
-                                    return 'Día ' + idx + ' - ' + formatDate(futureDates[idx]);
+                                    return 'Día ' + (idx + 1) + ' - ' + formatDate(dates[idx]);
                                 },
                                 label: function(context) {
                                     let label = context.dataset.label + ': $' + context.parsed.y.toFixed(2);
-                                    if (context.datasetIndex === 0 && context.dataIndex > 0) {
+                                    if (context.datasetIndex === 0) {
                                         const diff = context.parsed.y - basePrice;
                                         const diffPercent = ((diff / basePrice) * 100).toFixed(2);
-                                        label += ` (${diff >= 0 ? '+' : ''}${diffPercent}% vs hoy)`;
+                                        label += ` (${diff >= 0 ? '+' : ''}${diffPercent}% vs actual)`;
                                     }
                                     return label;
                                 }
@@ -598,10 +476,10 @@
 
         async function showPrediction() {
             const symbol = document.getElementById('cryptoSelect').value;
-            const modelType = document.getElementById('modelSelect').value;
+            const model = document.getElementById('modelSelect').value;
             const days = parseInt(document.getElementById('daysInput').value);
             
-            if (!symbol || !modelsInfo) {
+            if (!symbol) {
                 alert('Por favor selecciona una criptomoneda');
                 return;
             }
@@ -610,87 +488,45 @@
             document.getElementById('results').classList.remove('show');
             document.getElementById('predictBtn').disabled = true;
             
-            const cryptoId = cryptoIds[symbol];
-            const realTimeData = await fetchRealTimePrice(cryptoId);
-            
-            setTimeout(() => {
-                try {
-                    const symbolInfo = modelsInfo.models[symbol];
-                    const modelData = symbolInfo.models[modelType];
-                    
-                    if (!modelData) {
-                        throw new Error(`No hay datos para el modelo ${modelType}`);
-                    }
-                    
-                    const basePrice = realTimeData?.price || symbolInfo.last_price;
-                    const lastDataDate = new Date(symbolInfo.last_date);
-                    const today = getTodayDate();
-                    const daysOld = daysBetween(today, lastDataDate);
-                    
-                    let modelPredictions = modelType === 'arima' ? 
-                        (modelData.forecast_30d || []) : 
-                        (modelData.last_30_predictions || []);
-                    
-                    if (!modelPredictions || modelPredictions.length === 0) {
-                        throw new Error('No hay predicciones disponibles para este modelo');
-                    }
-                    
-                    const firstPred = modelPredictions[0];
-                    const lastPred = modelPredictions[modelPredictions.length - 1];
-                    const totalChangePercent = ((lastPred - firstPred) / firstPred);
-                    const avgChangePercent = totalChangePercent / modelPredictions.length;
-                    
-                    const conservativeFactor = 0.3;
-                    
-                    let volatilitySum = 0;
-                    for (let i = 1; i < modelPredictions.length; i++) {
-                        const change = Math.abs((modelPredictions[i] - modelPredictions[i-1]) / modelPredictions[i-1]);
-                        volatilitySum += change;
-                    }
-                    const avgVolatility = volatilitySum / (modelPredictions.length - 1);
-                    
-                    let predictions = [];
-                    predictions.push(basePrice);
-                    
-                    let lastPrice = basePrice;
-                    
-                    for (let i = 1; i < days && i <= 30; i++) {
-                        const trendChange = avgChangePercent * conservativeFactor;
-                        const volatilityComponent = avgVolatility * conservativeFactor * (Math.sin(i * 0.5) * 0.5);
-                        const totalChange = trendChange + volatilityComponent;
-                        const predictedPrice = lastPrice * (1 + totalChange);
-                        
-                        predictions.push(predictedPrice);
-                        lastPrice = predictedPrice;
-                    }
-                    
-                    const futureDates = generateFutureDates(predictions.length);
-                    
-                    const avgPrice = predictions.reduce((a, b) => a + b, 0) / predictions.length;
-                    const maxPrice = Math.max(...predictions);
-                    const minPrice = Math.min(...predictions);
-                    const currentPrice = symbolInfo.last_price;
-                    
-                    displayResults({
-                        symbol, modelType, predictions, futureDates,
-                        currentPrice, avgPrice, maxPrice, minPrice,
-                        lastDate: symbolInfo.last_date, daysOld,
-                        modelData, 
-                        realTimePrice: realTimeData?.price,
-                        realTimeChange: realTimeData?.change24h,
-                        basePrice: basePrice
-                    });
-                } catch (error) {
-                    console.error('Error:', error);
-                    document.getElementById('resultsContent').innerHTML = `
-                        <div class="error"><h3>❌ Error</h3><p>${error.message}</p></div>
-                    `;
-                    document.getElementById('results').classList.add('show');
-                } finally {
-                    document.getElementById('loading').classList.remove('show');
-                    document.getElementById('predictBtn').disabled = false;
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        symbol: symbol,
+                        model: model,
+                        days: days
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error en la solicitud: ' + response.statusText);
                 }
-            }, 500);
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('resultsContent').innerHTML = `
+                    <div class="error">
+                        <h3>❌ Error</h3>
+                        <p>${error.message}</p>
+                        <p class="info-text">Asegúrate de que el servidor FastAPI esté ejecutándose en http://127.0.0.1:8000</p>
+                    </div>
+                `;
+                document.getElementById('results').classList.add('show');
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('predictBtn').disabled = false;
+            }
         }
 
         function displayResults(data) {
@@ -698,95 +534,28 @@
             const cryptoName = cryptoNames[data.symbol];
             const cryptoSymbol = cryptoSymbols[data.symbol];
             
-            let modelInfo = '';
-            if (data.modelType === 'arima' && data.modelData.aic) {
-                modelInfo = `<div class="stat-item"><strong>AIC:</strong> ${data.modelData.aic.toFixed(2)} | <strong>BIC:</strong> ${data.modelData.bic.toFixed(2)}</div>`;
-            } else if (data.modelData.final_loss) {
-                modelInfo = `
-                    <div class="stat-item"><strong>Loss Final:</strong> ${data.modelData.final_loss.toFixed(6)}</div>
-                    <div class="stat-item"><strong>Arquitectura:</strong> ${data.modelData.architecture}</div>
-                `;
-            }
-
-            let dataWarning = '';
-            if (data.daysOld > 0) {
-                dataWarning = `
-                    <div class="warning-box">
-                        <strong>⚠️ Nota Importante:</strong>
-                        Los datos del modelo son del ${formatDate(new Date(data.lastDate))} 
-                        (hace ${data.daysOld} día${data.daysOld > 1 ? 's' : ''}). 
-                        Las predicciones se han ajustado desde el precio ${data.realTimePrice ? 'actual en tiempo real' : 'más reciente del modelo'} 
-                        aplicando la tendencia histórica del modelo.
-                    </div>
-                `;
-            }
-
             let realTimePriceBox = '';
-            let modelAccuracyBox = '';
-            
-            if (data.realTimePrice) {
+            if (data.real_time_price) {
                 realTimePriceBox = `
                     <div class="current-price-box real-time-box">
                         <div class="label">💹 Precio Actual en Tiempo Real</div>
-                        <div class="price">$${data.realTimePrice.toFixed(2)}</div>
-                        <div class="date-badge">
-                            ${data.realTimeChange >= 0 ? '📈' : '📉'} 
-                            ${data.realTimeChange >= 0 ? '+' : ''}${data.realTimeChange.toFixed(2)}% (24h)
-                        </div>
-                    </div>
-                `;
-
-                const modelVsReal = data.avgPrice - data.realTimePrice;
-                const modelVsRealPercent = ((modelVsReal / data.realTimePrice) * 100).toFixed(2);
-                const isAccurate = Math.abs(parseFloat(modelVsRealPercent)) < 5;
-                
-                modelAccuracyBox = `
-                    <div class="comparison-box ${isAccurate ? 'model-accuracy-good' : 'model-accuracy-bad'}">
-                        <h4>🎯 Precisión del Modelo</h4>
-                        <div class="comparison-item">
-                            <span class="comparison-label">Precio Real Actual:</span>
-                            <span class="comparison-value">$${data.realTimePrice.toFixed(2)}</span>
-                        </div>
-                        <div class="comparison-item">
-                            <span class="comparison-label">Precio Promedio Predicho:</span>
-                            <span class="comparison-value">$${data.avgPrice.toFixed(2)}</span>
-                        </div>
-                        <div class="comparison-item">
-                            <span class="comparison-label">Diferencia:</span>
-                            <span class="comparison-value ${modelVsReal >= 0 ? 'positive' : 'negative'}">
-                                ${modelVsReal >= 0 ? '+' : ''}$${Math.abs(modelVsReal).toFixed(2)} 
-                                (${modelVsReal >= 0 ? '+' : ''}${modelVsRealPercent}%)
-                            </span>
-                        </div>
-                        <div class="comparison-item">
-                            <span class="comparison-label">Evaluación:</span>
-                            <span class="comparison-value ${isAccurate ? 'positive' : 'negative'}">
-                                ${Math.abs(parseFloat(modelVsRealPercent)) < 5 ? '✅ Excelente (<5%)' : 
-                                  Math.abs(parseFloat(modelVsRealPercent)) < 10 ? '⚠️ Aceptable (5-10%)' : 
-                                  '❌ Baja precisión (>10%)'}
-                            </span>
-                        </div>
+                        <div class="price">$${data.real_time_price.toFixed(2)}</div>
                     </div>
                 `;
             }
 
-            const comparePrice = data.realTimePrice || data.currentPrice;
-            const priceChange = ((data.avgPrice - comparePrice) / comparePrice * 100).toFixed(2);
+            const comparePrice = data.base_price;
+            const priceChange = ((data.stats.avg_price - comparePrice) / comparePrice * 100).toFixed(2);
             
             document.getElementById('resultsContent').innerHTML = `
                 <div class="result-card">
-                    <h3>${cryptoName} (${cryptoSymbol}) - Modelo ${modelNames[data.modelType]}</h3>
-                    ${dataWarning}
+                    <h3>${cryptoName} (${cryptoSymbol}) - Modelo ${modelNames[data.model_used]}</h3>
                     ${realTimePriceBox}
                     <div class="current-price-box">
-                        <div class="label">🗄️ Último Precio del Modelo</div>
-                        <div class="price">$${data.currentPrice.toFixed(2)}</div>
-                        <div class="date-badge">Datos del ${formatDate(new Date(data.lastDate))}</div>
+                        <div class="label">📊 Precio Base</div>
+                        <div class="price">$${data.base_price.toFixed(2)}</div>
                     </div>
-                    ${modelInfo}
                 </div>
-
-                ${modelAccuracyBox}
 
                 <div class="chart-container">
                     <h3>📈 Gráfico de Predicciones</h3>
@@ -796,18 +565,18 @@
                 <div class="grid">
                     <div class="result-card">
                         <h3>💵 Precio Promedio Predicho</h3>
-                        <div class="price">$${data.avgPrice.toFixed(2)}</div>
+                        <div class="price">$${data.stats.avg_price.toFixed(2)}</div>
                         <p class="info-text ${priceChange >= 0 ? 'positive' : 'negative'}" style="font-weight: bold;">
                             ${priceChange >= 0 ? '▲' : '▼'} ${Math.abs(priceChange)}%
                         </p>
                     </div>
                     <div class="result-card">
                         <h3>⬆️ Precio Máximo</h3>
-                        <div class="price">$${data.maxPrice.toFixed(2)}</div>
+                        <div class="price">$${data.stats.max_price.toFixed(2)}</div>
                     </div>
                     <div class="result-card">
                         <h3>⬇️ Precio Mínimo</h3>
-                        <div class="price">$${data.minPrice.toFixed(2)}</div>
+                        <div class="price">$${data.stats.min_price.toFixed(2)}</div>
                     </div>
                 </div>
                 
@@ -815,33 +584,16 @@
                     <h3>📅 Predicciones Diarias</h3>
                     <div class="predictions-list">
                         ${data.predictions.map((price, i) => {
-                            if (i === 0) {
-                                return `
-                                <div class="prediction-item">
-                                    <div style="display: flex; align-items: center; flex: 1;">
-                                        <span class="prediction-day">Hoy (Base)</span>
-                                        <span class="prediction-date">${formatDate(data.futureDates[i])}</span>
-                                    </div>
-                                    <div style="text-align: right;">
-                                        <span class="prediction-price">${price.toFixed(2)}</span>
-                                        <div style="font-size: 0.85em; color: #6c757d;">
-                                            Precio actual
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                            }
-                            
                             const diff = price - comparePrice;
                             const diffPercent = ((diff / comparePrice) * 100).toFixed(2);
                             return `
                             <div class="prediction-item">
                                 <div style="display: flex; align-items: center; flex: 1;">
-                                    <span class="prediction-day">Día ${i}</span>
-                                    <span class="prediction-date">${formatDate(data.futureDates[i])}</span>
+                                    <span class="prediction-day">Día ${i + 1}</span>
+                                    <span class="prediction-date">${formatDate(data.dates[i])}</span>
                                 </div>
                                 <div style="text-align: right;">
-                                    <span class="prediction-price">${price.toFixed(2)}</span>
+                                    <span class="prediction-price">$${price.toFixed(2)}</span>
                                     <div class="${diff >= 0 ? 'positive' : 'negative'}" style="font-size: 0.85em;">
                                         ${diff >= 0 ? '+' : ''}${diffPercent}%
                                     </div>
@@ -853,10 +605,8 @@
             `;
             
             document.getElementById('results').classList.add('show');
-            setTimeout(() => createChart(data.predictions, data.currentPrice, data.realTimePrice, data.futureDates), 100);
+            setTimeout(() => createChart(data.predictions, data.base_price, data.real_time_price, data.dates), 100);
         }
-
-        loadModelsInfo();
     </script>
 </body>
 </html>
