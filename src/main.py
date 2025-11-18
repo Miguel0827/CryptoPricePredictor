@@ -16,6 +16,10 @@ app.add_middleware(
     allow_headers=["*"],  # Permite todos los headers
 )
 
+
+# Lista global para almacenar el historial de predicciones
+prediction_history = []
+
 class PredictionRequest(BaseModel):
     symbol: str     # "0", "1", "2"
     model: str      # "arima", "lstm", "gru"
@@ -46,7 +50,7 @@ async def predict(req: PredictionRequest):
 
     avg_price = sum(predictions) / len(predictions)
 
-    return {
+    result = {
         "symbol": req.symbol,
         "model_used": req.model,
         "real_time_price": real_time,
@@ -59,3 +63,15 @@ async def predict(req: PredictionRequest):
             "max_price": max(predictions),
         }
     }
+     # Guardar en historial
+    prediction_history.append(result)
+
+    return result
+
+@app.get("/healthCheck")
+async def health_check():
+    return {"status": "healthy"}
+
+@app.get("/history")
+async def get_recommendations():
+    return prediction_history
