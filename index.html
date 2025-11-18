@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,57 +12,58 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
         }
-        
+
         .header {
             text-align: center;
             color: white;
             margin-bottom: 40px;
         }
-        
+
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             font-weight: 600;
         }
-        
+
         .header p {
             font-size: 1.1em;
             opacity: 0.9;
         }
-        
+
         .controls {
             background: white;
             border-radius: 12px;
             padding: 30px;
             margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
             color: #2c3e50;
         }
-        
-        select, input {
+
+        select,
+        input {
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
@@ -70,12 +72,13 @@
             transition: border-color 0.3s;
             background: white;
         }
-        
-        select:focus, input:focus {
+
+        select:focus,
+        input:focus {
             outline: none;
             border-color: #2a5298;
         }
-        
+
         button {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
@@ -87,44 +90,52 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             width: 100%;
+            margin-bottom: 10px;
         }
-        
+
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(42, 82, 152, 0.4);
         }
-        
+
         button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
-        
+
         .results {
             background: white;
             border-radius: 12px;
             padding: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             display: none;
         }
-        
+
         .results.show {
             display: block;
             animation: fadeIn 0.5s;
         }
-        
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
         .results h2 {
             color: #1e3c72;
             margin-bottom: 25px;
             font-size: 1.8em;
             font-weight: 600;
         }
-        
+
         .result-card {
             background: #f8f9fa;
             border-radius: 8px;
@@ -132,14 +143,14 @@
             margin-bottom: 20px;
             border: 1px solid #e9ecef;
         }
-        
+
         .result-card h3 {
             color: #2a5298;
             margin-bottom: 15px;
             font-size: 1.3em;
             font-weight: 600;
         }
-        
+
         .price {
             font-size: 2.2em;
             font-weight: bold;
@@ -166,29 +177,29 @@
         .current-price-box .price {
             color: white;
             font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .date-badge {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             padding: 5px 15px;
             border-radius: 15px;
             font-size: 0.85em;
             display: inline-block;
             margin-top: 10px;
         }
-        
+
         .loading {
             text-align: center;
             padding: 20px;
             color: white;
             display: none;
         }
-        
+
         .loading.show {
             display: block;
         }
-        
+
         .spinner {
             border: 4px solid rgba(255, 255, 255, 0.3);
             border-top: 4px solid white;
@@ -198,24 +209,29 @@
             animation: spin 1s linear infinite;
             margin: 20px auto;
         }
-        
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-        
+
         .info-text {
             color: #6c757d;
             font-size: 0.9em;
             margin-top: 10px;
         }
-        
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
         }
-        
+
         .stat-item {
             background: white;
             padding: 15px;
@@ -223,16 +239,16 @@
             margin: 10px 0;
             border: 1px solid #e9ecef;
         }
-        
+
         .stat-item strong {
             color: #2a5298;
         }
-        
+
         .predictions-list {
             max-height: 400px;
             overflow-y: auto;
         }
-        
+
         .prediction-item {
             padding: 12px;
             background: white;
@@ -244,7 +260,7 @@
             border: 1px solid #e9ecef;
             border-left: 4px solid #2a5298;
         }
-        
+
         .prediction-day {
             font-weight: 600;
             color: #2a5298;
@@ -256,13 +272,13 @@
             font-size: 0.9em;
             margin-left: 10px;
         }
-        
+
         .prediction-price {
             font-size: 1.2em;
             font-weight: bold;
             color: #2c3e50;
         }
-        
+
         .chart-container {
             margin: 20px 0;
             background: white;
@@ -270,11 +286,11 @@
             border-radius: 8px;
             border: 1px solid #e9ecef;
         }
-        
+
         .chart-container canvas {
             max-height: 400px;
         }
-        
+
         .error {
             background: #fee;
             color: #c33;
@@ -297,13 +313,14 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <h1>🚀 Crypto Price Predictor</h1>
             <p>Predicciones de precios usando modelos ARIMA, LSTM y GRU</p>
         </div>
-        
+
         <div class="controls">
             <div class="form-group">
                 <label for="cryptoSelect">Selecciona la criptomoneda:</label>
@@ -313,7 +330,7 @@
                     <option value="2">Dogecoin (DOGE)</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <label for="modelSelect">Selecciona el modelo de predicción:</label>
                 <select id="modelSelect">
@@ -322,42 +339,41 @@
                     <option value="gru">GRU - Gated Recurrent Unit (Red Neuronal Recurrente)</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <label for="daysInput">Días a visualizar (máximo 30):</label>
                 <input type="number" id="daysInput" value="7" min="1" max="30">
             </div>
-            
+
             <button id="predictBtn" onclick="showPrediction()">🔮 Ver Predicciones</button>
+            <!-- NUEVO BOTÓN PARA HISTORIAL -->
+            <button id="historyBtn" onclick="showHistory()">📜 Historial de Predicciones</button>
         </div>
-        
+
         <div class="loading" id="loading">
             <div class="spinner"></div>
             <p>Cargando predicciones...</p>
         </div>
-        
+
         <div class="results" id="results">
             <h2>Resultados de la Predicción</h2>
             <div id="resultsContent"></div>
+        </div>
+
+        <!-- NUEVO CONTENEDOR PARA HISTORIAL -->
+        <div class="results" id="historyResults">
+            <h2>Historial de Predicciones</h2>
+            <div id="historyContent"></div>
         </div>
     </div>
 
     <script>
         let currentChart = null;
-
         const API_URL = 'http://127.0.0.1:8000/predict';
+        const HISTORY_URL = 'http://127.0.0.1:8000/history';
 
-        const cryptoNames = {
-            '0': 'Bitcoin',
-            '1': 'Ethereum',
-            '2': 'Solana'
-        };
-
-        const cryptoSymbols = {
-            '0': 'BTC',
-            '1': 'ETH',
-            '2': 'SOL'
-        };
+        const cryptoNames = { '0': 'Bitcoin', '1': 'Ethereum', '2': 'Dogecoin' };
+        const cryptoSymbols = { '0': 'BTC', '1': 'ETH', '2': 'DOGE' };
 
         function formatDate(dateStr) {
             const date = new Date(dateStr);
@@ -372,15 +388,10 @@
             return `${day}/${month}`;
         }
 
-        function createChart(predictions, basePrice, realTimePrice, dates) {
-            const ctx = document.getElementById('predictionChart');
-            
-            if (currentChart) {
-                currentChart.destroy();
-            }
-            
+        function createChart(predictions, basePrice, realTimePrice, dates, canvasId = 'predictionChart') {
+            const ctx = document.getElementById(canvasId);
+            if (currentChart) currentChart.destroy();
             const labels = dates.map((date, i) => formatDateShort(date));
-            
             const datasets = [{
                 label: 'Precio Predicho ($)',
                 data: predictions,
@@ -395,7 +406,6 @@
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2
             }];
-
             if (realTimePrice) {
                 datasets.push({
                     label: 'Precio Real Actual (Referencia)',
@@ -409,39 +419,24 @@
                     pointRadius: 0
                 });
             }
-            
             currentChart = new Chart(ctx, {
                 type: 'line',
                 data: { labels, datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    },
+                    interaction: { intersect: false, mode: 'index' },
                     plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                font: { size: 14, weight: '600' },
-                                padding: 20,
-                                usePointStyle: true
-                            }
-                        },
+                        legend: { display: true, position: 'top', labels: { font: { size: 14, weight: '600' }, padding: 20, usePointStyle: true } },
                         tooltip: {
                             backgroundColor: 'rgba(0, 0, 0, 0.8)',
                             padding: 15,
                             callbacks: {
-                                title: function(context) {
-                                    const idx = context[0].dataIndex;
-                                    return 'Día ' + (idx + 1) + ' - ' + formatDate(dates[idx]);
-                                },
-                                label: function(context) {
-                                    let label = context.dataset.label + ': $' + context.parsed.y.toFixed(2);
-                                    if (context.datasetIndex === 0) {
-                                        const diff = context.parsed.y - basePrice;
+                                title: ctx => 'Día ' + (ctx[0].dataIndex + 1) + ' - ' + formatDate(dates[ctx[0].dataIndex]),
+                                label: ctx => {
+                                    let label = ctx.dataset.label + ': $' + ctx.parsed.y.toFixed(2);
+                                    if (ctx.datasetIndex === 0) {
+                                        const diff = ctx.parsed.y - basePrice;
                                         const diffPercent = ((diff / basePrice) * 100).toFixed(2);
                                         label += ` (${diff >= 0 ? '+' : ''}${diffPercent}% vs actual)`;
                                     }
@@ -451,24 +446,8 @@
                         }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: false,
-                            ticks: {
-                                callback: value => '$' + value.toFixed(2)
-                            },
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
-                            },
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        }
+                        y: { beginAtZero: false, ticks: { callback: value => '$' + value.toFixed(2) }, grid: { color: 'rgba(0, 0, 0, 0.05)' } },
+                        x: { grid: { color: 'rgba(0, 0, 0, 0.05)' }, ticks: { maxRotation: 45, minRotation: 45 } }
                     }
                 }
             });
@@ -478,50 +457,19 @@
             const symbol = document.getElementById('cryptoSelect').value;
             const model = document.getElementById('modelSelect').value;
             const days = parseInt(document.getElementById('daysInput').value);
-            
-            if (!symbol) {
-                alert('Por favor selecciona una criptomoneda');
-                return;
-            }
-            
+            if (!symbol) { alert('Por favor selecciona una criptomoneda'); return; }
             document.getElementById('loading').classList.add('show');
             document.getElementById('results').classList.remove('show');
             document.getElementById('predictBtn').disabled = true;
-            
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        symbol: symbol,
-                        model: model,
-                        days: days
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Error en la solicitud: ' + response.statusText);
-                }
-
+                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol, model, days }) });
+                if (!response.ok) throw new Error('Error en la solicitud: ' + response.statusText);
                 const data = await response.json();
-
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-
+                if (data.error) throw new Error(data.error);
                 displayResults(data);
-                
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('resultsContent').innerHTML = `
-                    <div class="error">
-                        <h3>❌ Error</h3>
-                        <p>${error.message}</p>
-                        <p class="info-text">Asegúrate de que el servidor FastAPI esté ejecutándose en http://127.0.0.1:8000</p>
-                    </div>
-                `;
+                document.getElementById('resultsContent').innerHTML = `<div class="error"><h3>❌ Error</h3><p>${error.message}</p><p class="info-text">Asegúrate de que el servidor FastAPI esté ejecutándose en http://127.0.0.1:8000</p></div>`;
                 document.getElementById('results').classList.add('show');
             } finally {
                 document.getElementById('loading').classList.remove('show');
@@ -533,20 +481,12 @@
             const modelNames = { 'arima': 'ARIMA', 'lstm': 'LSTM', 'gru': 'GRU' };
             const cryptoName = cryptoNames[data.symbol];
             const cryptoSymbol = cryptoSymbols[data.symbol];
-            
             let realTimePriceBox = '';
             if (data.real_time_price) {
-                realTimePriceBox = `
-                    <div class="current-price-box real-time-box">
-                        <div class="label">💹 Precio Actual en Tiempo Real</div>
-                        <div class="price">$${data.real_time_price.toFixed(2)}</div>
-                    </div>
-                `;
+                realTimePriceBox = `<div class="current-price-box real-time-box"><div class="label">💹 Precio Actual en Tiempo Real</div><div class="price">$${data.real_time_price.toFixed(2)}</div></div>`;
             }
-
             const comparePrice = data.base_price;
             const priceChange = ((data.stats.avg_price - comparePrice) / comparePrice * 100).toFixed(2);
-            
             document.getElementById('resultsContent').innerHTML = `
                 <div class="result-card">
                     <h3>${cryptoName} (${cryptoSymbol}) - Modelo ${modelNames[data.model_used]}</h3>
@@ -556,19 +496,15 @@
                         <div class="price">$${data.base_price.toFixed(2)}</div>
                     </div>
                 </div>
-
                 <div class="chart-container">
                     <h3>📈 Gráfico de Predicciones</h3>
                     <canvas id="predictionChart"></canvas>
                 </div>
-                
                 <div class="grid">
                     <div class="result-card">
                         <h3>💵 Precio Promedio Predicho</h3>
                         <div class="price">$${data.stats.avg_price.toFixed(2)}</div>
-                        <p class="info-text ${priceChange >= 0 ? 'positive' : 'negative'}" style="font-weight: bold;">
-                            ${priceChange >= 0 ? '▲' : '▼'} ${Math.abs(priceChange)}%
-                        </p>
+                        <p class="info-text ${priceChange >= 0 ? 'positive' : 'negative'}" style="font-weight: bold;">${priceChange >= 0 ? '▲' : '▼'} ${Math.abs(priceChange)}%</p>
                     </div>
                     <div class="result-card">
                         <h3>⬆️ Precio Máximo</h3>
@@ -579,34 +515,94 @@
                         <div class="price">$${data.stats.min_price.toFixed(2)}</div>
                     </div>
                 </div>
-                
                 <div class="result-card">
                     <h3>📅 Predicciones Diarias</h3>
                     <div class="predictions-list">
                         ${data.predictions.map((price, i) => {
-                            const diff = price - comparePrice;
-                            const diffPercent = ((diff / comparePrice) * 100).toFixed(2);
-                            return `
-                            <div class="prediction-item">
-                                <div style="display: flex; align-items: center; flex: 1;">
-                                    <span class="prediction-day">Día ${i + 1}</span>
-                                    <span class="prediction-date">${formatDate(data.dates[i])}</span>
-                                </div>
-                                <div style="text-align: right;">
-                                    <span class="prediction-price">$${price.toFixed(2)}</span>
-                                    <div class="${diff >= 0 ? 'positive' : 'negative'}" style="font-size: 0.85em;">
-                                        ${diff >= 0 ? '+' : ''}${diffPercent}%
-                                    </div>
-                                </div>
-                            </div>
-                        `}).join('')}
+                const diff = price - comparePrice;
+                const diffPercent = ((diff / comparePrice) * 100).toFixed(2);
+                return `<div class="prediction-item"><div style="display: flex; align-items: center; flex: 1;"><span class="prediction-day">Día ${i + 1}</span><span class="prediction-date">${formatDate(data.dates[i])}</span></div><div class="prediction-price ${diff >= 0 ? 'positive' : 'negative'}">$${price.toFixed(2)} (${diff >= 0 ? '+' : ''}${diffPercent}%)</div></div>`;
+            }).join('')}
                     </div>
                 </div>
             `;
-            
+            createChart(data.predictions, data.base_price, data.real_time_price, data.dates);
             document.getElementById('results').classList.add('show');
-            setTimeout(() => createChart(data.predictions, data.base_price, data.real_time_price, data.dates), 100);
+        }
+
+        // NUEVO: Función para mostrar historial
+        async function showHistory() {
+            const historyContent = document.getElementById('historyContent');
+            historyContent.innerHTML = `<p class="info-text">Cargando historial...</p>`;
+            document.getElementById('historyResults').classList.add('show');
+            try {
+                const response = await fetch(HISTORY_URL);
+                if (!response.ok) throw new Error('Error al obtener historial: ' + response.statusText);
+                const history = await response.json();
+                if (!history.length) {
+                    historyContent.innerHTML = `<p class="info-text">No hay predicciones anteriores.</p>`;
+                    return;
+                }
+                historyContent.innerHTML = '';
+                history.forEach((item, idx) => {
+                    const cryptoName = cryptoNames[item.symbol] || 'Desconocido';
+                    const cryptoSymbol = cryptoSymbols[item.symbol] || '';
+                    const canvasId = `historyChart${idx}`;
+                    const priceChange = ((item.stats.avg_price - item.base_price) / item.base_price * 100).toFixed(2);
+                    const card = document.createElement('div');
+                    card.className = 'result-card';
+                    card.innerHTML = `
+                        <h3>${cryptoName} (${cryptoSymbol}) - Modelo ${item.model_used.toUpperCase()}</h3>
+                        <div class="current-price-box">
+                            <div class="label">📊 Precio Base</div>
+                            <div class="price">$${item.base_price.toFixed(2)}</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="${canvasId}"></canvas>
+                        </div>
+                    `;
+                    historyContent.appendChild(card);
+                    new Chart(document.getElementById(canvasId), {
+                        type: 'line',
+                        data: {
+                            labels: item.dates.map(d => formatDateShort(d)),
+                            datasets: [
+                                {
+                                    label: 'Predicciones',
+                                    data: item.predictions,
+                                    borderColor: '#2a5298',
+                                    backgroundColor: 'rgba(42, 82, 152, 0.1)',
+                                    borderWidth: 3,
+                                    tension: 0.4,
+                                    fill: true,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7
+                                },
+                                {
+                                    label: 'Precio Base',
+                                    data: Array(item.predictions.length).fill(item.base_price),
+                                    borderColor: '#28a745',
+                                    borderWidth: 2,
+                                    borderDash: [5, 5],
+                                    fill: false,
+                                    pointRadius: 0
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            interaction: { intersect: false, mode: 'index' },
+                            plugins: { legend: { display: true, position: 'top', labels: { font: { size: 14, weight: '600' } } } },
+                            scales: { y: { beginAtZero: false }, x: { ticks: { maxRotation: 45, minRotation: 45 } } }
+                        }
+                    });
+                });
+            } catch (error) {
+                historyContent.innerHTML = `<div class="error"><h3>❌ Error</h3><p>${error.message}</p></div>`;
+            }
         }
     </script>
 </body>
+
 </html>
